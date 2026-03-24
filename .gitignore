@@ -2,7 +2,9 @@
 .terraform/
 *.tfstate
 *.tfstate.*
+# Ignore local tfvars by default, but allow versioned environment tfvars
 *.tfvars
+!config/*.tfvars
 *.tfvars.json
 *.tfplan
 plan.out
