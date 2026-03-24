@@ -1,0 +1,66 @@
+# Nom du workflow affiché dans GitHub Actions
+name: terraform-ci
+
+# Déclencheurs du pipeline
+on:
+  # À chaque PR vers main → validation infra
+  pull_request:
+    branches:
+      - main
+
+  # À chaque push sur main → validation infra
+  push:
+    branches:
+      - main
+
+# Permissions nécessaires pour OIDC (auth Azure sans secret)
+permissions:
+  id-token: write     # requis pour récupérer un token OIDC GitHub → Azure
+  contents: read      # lecture du repo
+
+# Empêche plusieurs runs simultanés sur la même branche
+concurrency:
+  group: terraform-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+# Variables globales du job
+env:
+  TF_IN_AUTOMATION: true   # mode non interactif Terraform (important en CI)
+
+jobs:
+  terraform:
+    name: Terraform CI
+    runs-on: ubuntu-latest   # runner Linux (standard CI)
+
+    steps:
+      # 1. Récupération du code depuis GitHub
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Installation de Terraform
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      # 3. Authentification Azure via OIDC (pas de secret)
+      - name: Azure login with OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}         # App Registration (Service Principal)
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}         # Tenant Azure
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}  # Subscription par défaut
+
+      # 4. Vérification du format du code Terraform
+      - name: Terraform format check
+        run: terraform fmt -check -recursive
+
+      # 5. Initialisation Terraform (providers + backend)
+      - name: Terraform init
+        run: terraform init -input=false
+
+      # 6. Validation syntaxique et structurelle
+      - name: Terraform validate
+        run: terraform validate
+
+      # 7. Génération du plan (sans apply)
+      - name: Terraform plan
+        run: terraform plan -input=false -lock-timeout=300s
