@@ -277,7 +277,7 @@ resource "azurerm_windows_virtual_machine" "test" {
   computer_name       = local.naming.vm_test_computer_name
   resource_group_name = module.resource_group.name
   location            = module.resource_group.location
-  size                = "Standard_B2s"
+  size                = "Standard_B2ts_v2"
 
   admin_username = "azureuser"
   admin_password = random_password.vm_admin.result

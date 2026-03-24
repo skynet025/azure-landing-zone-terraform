@@ -1,0 +1,89 @@
+# Nom du workflow affiché dans GitHub Actions
+name: terraform-apply-np
+
+# Déclenchement manuel uniquement
+on:
+  workflow_dispatch:
+
+# Permissions minimales nécessaires
+permissions:
+  id-token: write   # requis pour l'authentification OIDC vers Azure
+  contents: read    # lecture du contenu du repository
+
+# Évite les exécutions concurrentes d'apply sur le même environnement
+concurrency:
+  group: terraform-apply-np
+  cancel-in-progress: false
+
+# Variables globales du job
+env:
+  TF_IN_AUTOMATION: true
+
+  # Variables Terraform injectées par le pipeline
+  TF_VAR_subscription_id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+  TF_VAR_tenant_id: ${{ vars.AZURE_TENANT_ID }}
+
+jobs:
+  terraform-apply:
+    name: Terraform Apply NP
+    runs-on: ubuntu-latest
+
+    # Liaison du job à l'environment GitHub "np"
+    environment:
+      name: np
+
+    steps:
+      # -----------------------------------------------------------------
+      # Checkout du code source
+      # -----------------------------------------------------------------
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # -----------------------------------------------------------------
+      # Installation de Terraform
+      # -----------------------------------------------------------------
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      # -----------------------------------------------------------------
+      # Authentification Azure via OIDC
+      # GitHub et Azure supportent ce modèle sans secret long terme
+      # -----------------------------------------------------------------
+      - name: Azure login with OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      # -----------------------------------------------------------------
+      # Vérification du format Terraform
+      # -----------------------------------------------------------------
+      - name: Terraform format check
+        run: terraform fmt -check -recursive
+
+      # -----------------------------------------------------------------
+      # Initialisation Terraform
+      # -----------------------------------------------------------------
+      - name: Terraform init
+        run: terraform init -input=false
+
+      # -----------------------------------------------------------------
+      # Validation syntaxique et structurelle
+      # -----------------------------------------------------------------
+      - name: Terraform validate
+        run: terraform validate
+
+      # -----------------------------------------------------------------
+      # Plan Terraform sur l'environnement non-prod
+      # -----------------------------------------------------------------
+      - name: Terraform plan
+        run: terraform plan -input=false -lock-timeout=300s -var-file="config/np.tfvars"
+
+      # -----------------------------------------------------------------
+      # Apply Terraform sur l'environnement non-prod
+      # L'apply ne s'exécute que sur la branche main
+      # -----------------------------------------------------------------
+      - name: Terraform apply
+        if: github.ref == 'refs/heads/main'
+        run: terraform apply -input=false -auto-approve -lock-timeout=300s -var-file="config/np.tfvars"
