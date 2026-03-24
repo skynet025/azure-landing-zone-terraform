@@ -31,5 +31,5 @@ vm_admin_username = "azureadmin"
 # Object IDs autorisés à gérer les secrets dans le Key Vault
 # -------------------------------------------------------------------
 
-github_sp_object_id = "dc2e1c61-56bd-4b23-8c09-0853931edb71"
+github_sp_object_id  = "dc2e1c61-56bd-4b23-8c09-0853931edb71"
 local_user_object_id = "b570dfc4-0be8-41ce-abd9-79d43dec1317"
