@@ -3,64 +3,88 @@ name: terraform-ci
 
 # Déclencheurs du pipeline
 on:
-  # À chaque PR vers main → validation infra
+  # Validation sur Pull Request vers main
   pull_request:
     branches:
       - main
 
-  # À chaque push sur main → validation infra
+  # Validation sur push direct vers main
   push:
     branches:
       - main
 
-# Permissions nécessaires pour OIDC (auth Azure sans secret)
+# Permissions minimales nécessaires
 permissions:
-  id-token: write     # requis pour récupérer un token OIDC GitHub → Azure
-  contents: read      # lecture du repo
+  id-token: write   # requis pour l'authentification OIDC vers Azure
+  contents: read    # lecture du contenu du repository
 
-# Empêche plusieurs runs simultanés sur la même branche
+# Évite plusieurs exécutions concurrentes sur la même branche
 concurrency:
   group: terraform-ci-${{ github.ref }}
   cancel-in-progress: true
 
 # Variables globales du job
 env:
-  TF_IN_AUTOMATION: true   # mode non interactif Terraform (important en CI)
+  TF_IN_AUTOMATION: true
+
+  # -----------------------------------------------------------------
+  # Variables Terraform injectées par GitHub Actions
+  # -----------------------------------------------------------------
+  # On ne versionne pas subscription_id et tenant_id dans le tfvars.
+  # Elles sont injectées par le pipeline via le mécanisme standard
+  # TF_VAR_<nom_variable>.
+  # -----------------------------------------------------------------
+  TF_VAR_subscription_id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+  TF_VAR_tenant_id: ${{ vars.AZURE_TENANT_ID }}
 
 jobs:
   terraform:
     name: Terraform CI
-    runs-on: ubuntu-latest   # runner Linux (standard CI)
+    runs-on: ubuntu-latest
 
     steps:
-      # 1. Récupération du code depuis GitHub
+      # -----------------------------------------------------------------
+      # Checkout du code source
+      # -----------------------------------------------------------------
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Installation de Terraform
+      # -----------------------------------------------------------------
+      # Installation de Terraform
+      # -----------------------------------------------------------------
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
-      # 3. Authentification Azure via OIDC (pas de secret)
+      # -----------------------------------------------------------------
+      # Authentification Azure via OIDC
+      # -----------------------------------------------------------------
       - name: Azure login with OIDC
         uses: azure/login@v2
         with:
-          client-id: ${{ vars.AZURE_CLIENT_ID }}         # App Registration (Service Principal)
-          tenant-id: ${{ vars.AZURE_TENANT_ID }}         # Tenant Azure
-          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}  # Subscription par défaut
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
 
-      # 4. Vérification du format du code Terraform
+      # -----------------------------------------------------------------
+      # Vérification du format Terraform
+      # -----------------------------------------------------------------
       - name: Terraform format check
         run: terraform fmt -check -recursive
 
-      # 5. Initialisation Terraform (providers + backend)
+      # -----------------------------------------------------------------
+      # Initialisation Terraform
+      # -----------------------------------------------------------------
       - name: Terraform init
         run: terraform init -input=false
 
-      # 6. Validation syntaxique et structurelle
+      # -----------------------------------------------------------------
+      # Validation syntaxique et structurelle
+      # -----------------------------------------------------------------
       - name: Terraform validate
         run: terraform validate
 
-      # 7. Génération du plan (sans apply)
+      # -----------------------------------------------------------------
+      # Génération du plan Terraform avec le fichier d'environnement NP
+      # -----------------------------------------------------------------
       - name: Terraform plan
-        run: terraform plan -input=false -lock-timeout=300s
+        run: terraform plan -input=false -lock-timeout=300s -var-file="config/np.tfvars"
