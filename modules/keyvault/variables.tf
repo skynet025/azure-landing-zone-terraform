@@ -24,12 +24,17 @@ variable "tenant_id" {
   description = "Azure tenant ID"
   type        = string
 }
+# -------------------------------------------------------------------
+# Principals allowed to manage Key Vault secrets
+# -------------------------------------------------------------------
+# Liste explicite des object IDs autorisés à gérer les secrets
+# dans le Key Vault.
+# -------------------------------------------------------------------
 
-variable "principal_id" {
-  description = "Principal ID receiving RBAC on the Key Vault"
-  type        = string
+variable "keyvault_access_principal_ids" {
+  description = "List of Azure AD object IDs allowed to manage Key Vault secrets"
+  type        = list(string)
 }
-
 variable "secret_name" {
   description = "Name of the secret stored in Key Vault"
   type        = string

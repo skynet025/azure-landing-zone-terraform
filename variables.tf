@@ -76,3 +76,19 @@ variable "tenant_id" {
   description = "Azure tenant ID used by Key Vault"
   type        = string
 }
+
+# -------------------------------------------------------------------
+# Key Vault access principals
+# -------------------------------------------------------------------
+# Object IDs explicitement autorisés à gérer les secrets du Key Vault.
+# -------------------------------------------------------------------
+
+variable "github_sp_object_id" {
+  description = "Object ID of the GitHub Actions Service Principal"
+  type        = string
+}
+
+variable "local_user_object_id" {
+  description = "Object ID of the local Azure user allowed to manage Key Vault secrets"
+  type        = string
+}

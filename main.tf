@@ -144,20 +144,12 @@ resource "random_password" "vm_admin" {
 }
 
 # -------------------------------------------------------------------
-# Get current Azure client configuration
-# -------------------------------------------------------------------
-# Cette data source permet de récupérer automatiquement :
-# - le tenant ID
-# - l'object ID de l'utilisateur/service principal courant
-# -------------------------------------------------------------------
-
-data "azurerm_client_config" "current" {}
-
-# -------------------------------------------------------------------
 # Key Vault module
 # -------------------------------------------------------------------
 # Le root module délègue la création du Key Vault,
-# l'assignation RBAC et le stockage du secret.
+# les assignations RBAC explicites et le stockage du secret.
+# Les identités autorisées sont déclarées explicitement afin
+# de ne pas dépendre du caller Terraform.
 # -------------------------------------------------------------------
 
 module "keyvault" {
@@ -168,8 +160,11 @@ module "keyvault" {
   resource_group_name = module.resource_group.name
   tenant_id           = var.tenant_id
 
-  # Principal courant récupéré via la data source Azure
-  principal_id = data.azurerm_client_config.current.object_id
+  # Liste explicite des identités autorisées sur le Key Vault
+  keyvault_access_principal_ids = [
+    var.github_sp_object_id,
+    var.local_user_object_id
+  ]
 
   # Secret stocké dans le Key Vault
   secret_name  = "vm-admin-password"

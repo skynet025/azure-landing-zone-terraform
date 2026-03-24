@@ -24,23 +24,27 @@ resource "azurerm_key_vault" "this" {
 }
 
 # -------------------------------------------------------------------
-# Role assignment for Key Vault Secrets Officer
+# Role assignments for Key Vault Secrets Officer
 # -------------------------------------------------------------------
-# Donne au principal fourni la capacité de gérer les secrets
-# dans le Key Vault.
+# Donne à chaque principal explicitement fourni la capacité
+# de gérer les secrets dans le Key Vault.
+# On évite ainsi de dépendre de l'identité courante qui exécute Terraform.
 # -------------------------------------------------------------------
 
 resource "azurerm_role_assignment" "secrets_officer" {
+  for_each = toset(var.keyvault_access_principal_ids)
+
   scope                = azurerm_key_vault.this.id
   role_definition_name = "Key Vault Secrets Officer"
-  principal_id         = var.principal_id
+  principal_id         = each.value
 }
 
 # -------------------------------------------------------------------
 # Key Vault secret
 # -------------------------------------------------------------------
 # Stocke la valeur sensible dans le Key Vault.
-# On dépend explicitement du rôle RBAC.
+# On dépend explicitement des assignations RBAC afin de limiter
+# les problèmes de propagation des permissions.
 # -------------------------------------------------------------------
 
 resource "azurerm_key_vault_secret" "this" {
