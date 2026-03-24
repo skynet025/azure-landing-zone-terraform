@@ -1,32 +1,57 @@
-# Terraform
+# -------------------------------------------------------------------
+# Terraform local working directories and state files
+# -------------------------------------------------------------------
 .terraform/
 *.tfstate
 *.tfstate.*
-# Ignore local tfvars by default, but allow versioned environment tfvars
-*.tfvars
-!config/*.tfvars
-*.tfvars.json
 *.tfplan
 plan.out
 crash.log
 crash.*.log
+
+# -------------------------------------------------------------------
+# Terraform variable files
+# By default, tfvars are ignored, except versioned environment config
+# stored under config/ for portfolio/lab purposes
+# -------------------------------------------------------------------
+*.tfvars
+!config/*.tfvars
+*.tfvars.json
+
+# -------------------------------------------------------------------
+# Terraform override files
+# -------------------------------------------------------------------
 override.tf
 override.tf.json
 *_override.tf
 *_override.tf.json
+
+# -------------------------------------------------------------------
+# Terraform CLI local config
+# -------------------------------------------------------------------
 .terraformrc
 terraform.rc
 
-# Generated artifacts
+# -------------------------------------------------------------------
+# Local admin / helper artifacts
+# -------------------------------------------------------------------
 graph.dot
+federated-credential*.json
+
+# -------------------------------------------------------------------
+# Generated images / diagrams
+# -------------------------------------------------------------------
 *.png
 *.svg
 
-# Editors / OS
+# -------------------------------------------------------------------
+# Editors and IDEs
+# -------------------------------------------------------------------
 .vscode/
 .idea/
+
+# -------------------------------------------------------------------
+# OS artifacts
+# -------------------------------------------------------------------
 .DS_Store
 Thumbs.db
-*.tmp
-*.bak
-federated-credential.json

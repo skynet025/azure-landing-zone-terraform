@@ -1,39 +1,41 @@
 # Azure Terraform Lab
 
-## Objective
-Enterprise-grade Azure lab using Terraform modules and CI validation.
+## Overview
+Enterprise-style Azure lab built with Terraform and GitHub Actions.
 
 ## Scope
-- Resource group
-- Hub / Spoke networking
-- Security (NSG, rules, associations)
-- Compute
-- Key Vault
-- Private Storage with Private Endpoint and Private DNS
-- Routing / UDR
+This lab demonstrates:
+- hub and spoke networking
+- VNet peering
+- NSG and UDR routing
+- Azure Key Vault with RBAC
+- Private Endpoint and Private DNS
+- Terraform remote state on Azure Storage
+- GitHub Actions CI and controlled apply
+- Azure OIDC authentication for pipelines
 
-## Prerequisites
-- Terraform
-- Azure CLI
-- Authenticated Azure session
-- Remote backend already configured
+## Repository structure
+- `modules/` reusable Terraform modules
+- `config/np.tfvars` non-production environment configuration
+- `.github/workflows/` CI/CD workflows
 
-## Common commands
-terraform fmt -recursive
-terraform validate
-terraform plan
-terraform apply
+## CI/CD
+### CI workflow
+Validates Terraform code with:
+- `terraform fmt -check`
+- `terraform init`
+- `terraform validate`
+- `terraform plan`
 
-## Modules
-- resource-group
-- network
-- security
-- compute
-- keyvault
-- storage-private
-- routing
+### Apply workflow
+Manual non-production deployment through GitHub Actions environment `np`.
+
+## Authentication
+GitHub Actions authenticates to Azure using OIDC federation.
+No long-lived Azure client secret is used.
+
+## State management
+Terraform state is stored remotely in Azure Storage.
 
 ## Notes
-- No local state should be committed
-- No tfvars file should be committed
-- All naming must go through locals.naming
+This repository is used as a practical Azure / Terraform / DevOps portfolio project.
