@@ -37,7 +37,7 @@ locals {
     dnslink_blob = "dnslink-${var.org}-${var.workload}-${var.env}-${var.region_code}-${var.instance}-blob"
 
     # Route table du spoke
-rt_spoke = "rt-${var.org}-${var.workload}-${var.env}-${var.region_code}-${var.instance}-spoke"
+    rt_spoke = "rt-${var.org}-${var.workload}-${var.env}-${var.region_code}-${var.instance}-spoke"
 
     # Nom de route par défaut vers un futur transit hub
     route_default_to_hub = "route-default-to-hub"
@@ -45,7 +45,7 @@ rt_spoke = "rt-${var.org}-${var.workload}-${var.env}-${var.region_code}-${var.in
     # Nouveau subnet de test pour la route table
     snet_test = "snet-test"
     # NIC de test pour lecture des effective routes
-    nic_test = "nic-${var.org}-${var.workload}-test-${var.env}-${var.region_code}-${var.instance}"
+    nic_test              = "nic-${var.org}-${var.workload}-test-${var.env}-${var.region_code}-${var.instance}"
     vm_test_computer_name = "VMJGFTST01"
   }
 
