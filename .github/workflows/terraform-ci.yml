@@ -105,5 +105,5 @@ jobs:
       # -----------------------------------------------------------------
       # Génération du plan Terraform sans tfvars versionné
       # -----------------------------------------------------------------
-      - name: Terraform plan
-        run: terraform plan -input=false -lock-timeout=300s
+      - name: Terraform plan (detailed exitcode)
+        run: terraform plan -detailed-exitcode -input=false
