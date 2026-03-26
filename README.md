@@ -80,34 +80,3 @@ Security is enforced using:
 modules/                # reusable Terraform modules
 config/                 # environment templates (.example only)
 .github/workflows/      # CI/CD pipelines
-```markdown
-
----
-
-## ➕ Section “How to use” (important)
-
-```markdown
-## How to Deploy
-
-### Prerequisites
-- Azure subscription
-- Azure CLI authenticated (`az login`)
-- Terraform installed
-- GitHub repository with configured environments
-
-### Deployment
-
-CI pipeline runs automatically on push / PR:
-- terraform fmt
-- terraform validate
-- terraform plan
-
-Manual deployment:
-- GitHub Actions → `terraform-apply`
-- Select environment (`np` or `prd`)
-
-## Disclaimer
-
-This project is a personal learning and portfolio project.
-
-It is not intended for direct production use without further hardening.
