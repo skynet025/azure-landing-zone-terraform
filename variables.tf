@@ -21,6 +21,11 @@ variable "scope" {
 variable "env" {
   description = "Environment code"
   type        = string
+
+  validation {
+    condition     = contains(["np", "prd"], var.env)
+    error_message = "env must be either 'np' or 'prd'."
+  }
 }
 
 variable "region_code" {

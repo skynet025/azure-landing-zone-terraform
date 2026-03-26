@@ -23,24 +23,43 @@ concurrency:
   group: terraform-ci-${{ github.ref }}
   cancel-in-progress: true
 
-# Variables globales du job
-env:
-  TF_IN_AUTOMATION: true
-
-  # -----------------------------------------------------------------
-  # Variables Terraform injectées par GitHub Actions
-  # -----------------------------------------------------------------
-  # On ne versionne pas subscription_id et tenant_id dans le tfvars.
-  # Elles sont injectées par le pipeline via le mécanisme standard
-  # TF_VAR_<nom_variable>.
-  # -----------------------------------------------------------------
-  TF_VAR_subscription_id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
-  TF_VAR_tenant_id: ${{ vars.AZURE_TENANT_ID }}
-
 jobs:
   terraform:
-    name: Terraform CI
+    name: Terraform CI (np)
     runs-on: ubuntu-latest
+
+    # -----------------------------------------------------------------
+    # Le CI s'exécute contre l'environnement non-production.
+    # Ne mets pas de reviewers obligatoires sur np, sinon ton CI sera bloqué.
+    # -----------------------------------------------------------------
+    environment:
+      name: np
+
+    # -----------------------------------------------------------------
+    # Variables Terraform injectées depuis l'environment GitHub.
+    # On ne dépend plus d'un fichier tfvars versionné.
+    # -----------------------------------------------------------------
+    env:
+      TF_IN_AUTOMATION: true
+
+      TF_VAR_subscription_id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      TF_VAR_tenant_id: ${{ vars.AZURE_TENANT_ID }}
+
+      TF_VAR_org: ${{ vars.ORG }}
+      TF_VAR_workload: ${{ vars.WORKLOAD }}
+      TF_VAR_scope: ${{ vars.SCOPE }}
+      TF_VAR_env: ${{ vars.ENV }}
+      TF_VAR_region_code: ${{ vars.REGION_CODE }}
+      TF_VAR_instance: ${{ vars.INSTANCE }}
+      TF_VAR_location: ${{ vars.LOCATION }}
+      TF_VAR_owner: ${{ vars.OWNER }}
+      TF_VAR_costcenter: ${{ vars.COSTCENTER }}
+      TF_VAR_data_classification: ${{ vars.DATA_CLASSIFICATION }}
+      TF_VAR_admin_public_ip: ${{ vars.ADMIN_PUBLIC_IP }}
+      TF_VAR_vm_admin_username: ${{ vars.VM_ADMIN_USERNAME }}
+
+      TF_VAR_github_sp_object_id: ${{ vars.SP_GITHUB_OBJECT_ID }}
+      TF_VAR_local_user_object_id: ${{ vars.LOCAL_USER_OBJECT_ID }}
 
     steps:
       # -----------------------------------------------------------------
@@ -84,7 +103,7 @@ jobs:
         run: terraform validate
 
       # -----------------------------------------------------------------
-      # Génération du plan Terraform avec le fichier d'environnement NP
+      # Génération du plan Terraform sans tfvars versionné
       # -----------------------------------------------------------------
       - name: Terraform plan
-        run: terraform plan -input=false -lock-timeout=300s -var-file="config/np.tfvars"
+        run: terraform plan -input=false -lock-timeout=300s

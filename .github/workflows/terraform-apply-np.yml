@@ -1,36 +1,62 @@
 # Nom du workflow affiché dans GitHub Actions
-name: terraform-apply-np
+name: terraform-apply
 
-# Déclenchement manuel uniquement
+# Déclenchement manuel avec choix de l'environnement
 on:
   workflow_dispatch:
+    inputs:
+      target_environment:
+        description: "GitHub environment to deploy"
+        required: true
+        default: "np"
+        type: choice
+        options:
+          - np
+          - prd
 
 # Permissions minimales nécessaires
 permissions:
-  id-token: write   # requis pour l'authentification OIDC vers Azure
-  contents: read    # lecture du contenu du repository
+  id-token: write
+  contents: read
 
-# Évite les exécutions concurrentes d'apply sur le même environnement
+# Évite les apply concurrents sur le même environnement
 concurrency:
-  group: terraform-apply-np
+  group: terraform-apply-${{ inputs.target_environment }}
   cancel-in-progress: false
-
-# Variables globales du job
-env:
-  TF_IN_AUTOMATION: true
-
-  # Variables Terraform injectées par le pipeline
-  TF_VAR_subscription_id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
-  TF_VAR_tenant_id: ${{ vars.AZURE_TENANT_ID }}
 
 jobs:
   terraform-apply:
-    name: Terraform Apply NP
+    name: Terraform Apply
     runs-on: ubuntu-latest
 
-    # Liaison du job à l'environment GitHub "np"
+    # -----------------------------------------------------------------
+    # Le job s'exécute dans l'environnement sélectionné.
+    # Cela permet de réutiliser le même workflow pour np puis prd.
+    # -----------------------------------------------------------------
     environment:
-      name: np
+      name: ${{ inputs.target_environment }}
+
+    env:
+      TF_IN_AUTOMATION: true
+
+      TF_VAR_subscription_id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      TF_VAR_tenant_id: ${{ vars.AZURE_TENANT_ID }}
+
+      TF_VAR_org: ${{ vars.ORG }}
+      TF_VAR_workload: ${{ vars.WORKLOAD }}
+      TF_VAR_scope: ${{ vars.SCOPE }}
+      TF_VAR_env: ${{ vars.ENV }}
+      TF_VAR_region_code: ${{ vars.REGION_CODE }}
+      TF_VAR_instance: ${{ vars.INSTANCE }}
+      TF_VAR_location: ${{ vars.LOCATION }}
+      TF_VAR_owner: ${{ vars.OWNER }}
+      TF_VAR_costcenter: ${{ vars.COSTCENTER }}
+      TF_VAR_data_classification: ${{ vars.DATA_CLASSIFICATION }}
+      TF_VAR_admin_public_ip: ${{ vars.ADMIN_PUBLIC_IP }}
+      TF_VAR_vm_admin_username: ${{ vars.VM_ADMIN_USERNAME }}
+
+      TF_VAR_github_sp_object_id: ${{ vars.SP_GITHUB_OBJECT_ID }}
+      TF_VAR_local_user_object_id: ${{ vars.LOCAL_USER_OBJECT_ID }}
 
     steps:
       # -----------------------------------------------------------------
@@ -47,7 +73,6 @@ jobs:
 
       # -----------------------------------------------------------------
       # Authentification Azure via OIDC
-      # GitHub et Azure supportent ce modèle sans secret long terme
       # -----------------------------------------------------------------
       - name: Azure login with OIDC
         uses: azure/login@v2
@@ -57,7 +82,7 @@ jobs:
           subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
 
       # -----------------------------------------------------------------
-      # Vérification du format Terraform
+      # Contrôle de format
       # -----------------------------------------------------------------
       - name: Terraform format check
         run: terraform fmt -check -recursive
@@ -69,21 +94,20 @@ jobs:
         run: terraform init -input=false
 
       # -----------------------------------------------------------------
-      # Validation syntaxique et structurelle
+      # Validation Terraform
       # -----------------------------------------------------------------
       - name: Terraform validate
         run: terraform validate
 
       # -----------------------------------------------------------------
-      # Plan Terraform sur l'environnement non-prod
+      # Plan Terraform
       # -----------------------------------------------------------------
       - name: Terraform plan
-        run: terraform plan -input=false -lock-timeout=300s -var-file="config/np.tfvars"
+        run: terraform plan -input=false -lock-timeout=300s
 
       # -----------------------------------------------------------------
-      # Apply Terraform sur l'environnement non-prod
-      # L'apply ne s'exécute que sur la branche main
+      # Apply Terraform
+      # L'apply reste manuel via workflow_dispatch.
       # -----------------------------------------------------------------
       - name: Terraform apply
-        if: github.ref == 'refs/heads/main'
-        run: terraform apply -input=false -auto-approve -lock-timeout=300s -var-file="config/np.tfvars"
+        run: terraform apply -input=false -auto-approve -lock-timeout=300s

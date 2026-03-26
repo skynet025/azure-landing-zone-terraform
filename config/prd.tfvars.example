@@ -1,0 +1,23 @@
+# -------------------------------------------------------------------
+# Example Terraform variables for non-production environment
+# This file is a template only.
+# Real values must stay outside Git.
+# -------------------------------------------------------------------
+
+subscription_id       = "00000000-0000-0000-0000-000000000000"
+tenant_id             = "00000000-0000-0000-0000-000000000000"
+github_sp_object_id   = "00000000-0000-0000-0000-000000000000"
+local_user_object_id  = "11111111-1111-1111-1111-111111111111"
+
+org                   = "jgfs"
+workload              = "tfdemo"
+scope                 = "core"
+env                   = "prd"
+region_code           = "frc"
+instance              = "01"
+location              = "francecentral"
+owner                 = "platform"
+costcenter            = "it"
+data_classification   = "internal"
+admin_public_ip       = "x.x.x.x/32"
+vm_admin_username     = "azureadmin"

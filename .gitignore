@@ -10,14 +10,11 @@ crash.log
 crash.*.log
 
 # -------------------------------------------------------------------
-# Terraform variable files
-# By default, tfvars are ignored, except versioned environment config
-# stored under config/ for portfolio/lab purposes
+# Local environment-specific tfvars must never be versioned
 # -------------------------------------------------------------------
-*.tfvars
-!config/*.tfvars
-*.tfvars.json
-
+config/*.tfvars
+!config/*.tfvars.example
+terraform.tfvars
 # -------------------------------------------------------------------
 # Terraform override files
 # -------------------------------------------------------------------
@@ -36,22 +33,13 @@ terraform.rc
 # Local admin / helper artifacts
 # -------------------------------------------------------------------
 graph.dot
-federated-credential*.json
+federated-credential.json
+federated-credential-*.json
 
 # -------------------------------------------------------------------
-# Generated images / diagrams
-# -------------------------------------------------------------------
-*.png
-*.svg
-
-# -------------------------------------------------------------------
-# Editors and IDEs
+# Editors / OS
 # -------------------------------------------------------------------
 .vscode/
 .idea/
-
-# -------------------------------------------------------------------
-# OS artifacts
-# -------------------------------------------------------------------
 .DS_Store
 Thumbs.db
