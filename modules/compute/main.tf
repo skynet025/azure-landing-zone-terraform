@@ -42,6 +42,12 @@ resource "azurerm_windows_virtual_machine" "this" {
     caching              = "ReadWrite"
     storage_account_type = "Standard_LRS"
   }
+  # -----------------------------------------------------------------
+  # Chiffrement hôte activé
+  # -----------------------------------------------------------------
+  # Permet de renforcer la protection des disques/IO côté hyperviseur
+  # et de satisfaire le contrôle Checkov sur le chiffrement de la VM.
+  # -----------------------------------------------------------------
   encryption_at_host_enabled = true
 
   source_image_reference {

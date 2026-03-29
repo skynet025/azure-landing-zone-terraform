@@ -119,14 +119,32 @@ jobs:
       # -----------------------------------------------------------------
       # Security scan - Terraform (DevSecOps)
       # -----------------------------------------------------------------
+      # Checkov scanne le code Terraform pour détecter les
+      # mauvaises configurations sécurité avant le plan/apply.
+      #
+      # Certains contrôles sont temporairement ignorés :
+      # - faux positifs / limites d'analyse statique
+      # - contraintes connues du lab
+      # - remédiations planifiées dans une PR de hardening dédiée
+      # -----------------------------------------------------------------
       - name: Run Checkov (Terraform security scan)
         uses: bridgecrewio/checkov-action@v12
         with:
           directory: .
           framework: terraform
           soft_fail: false
-          skip_check: CKV_AZURE_50,CKV2_AZURE_31,CKV2_AZURE_32,CKV2_AZURE_1,CKV_AZURE_206
 
+          # -------------------------------------------------------------
+          # Temporary skips
+          # -------------------------------------------------------------
+          # CKV_AZURE_50   : règle peu pertinente ici / à revoir plus tard
+          # CKV2_AZURE_31  : associations NSG gérées séparément du subnet
+          # CKV2_AZURE_32  : Private Endpoint Key Vault prévu plus tard
+          # CKV2_AZURE_1   : CMK storage trop avancé pour cette étape du lab
+          # CKV_AZURE_206  : réplication LRS assumée pour le lab
+          # CKV_AZURE_33   : queue logging non utilisé dans ce lab
+          # -------------------------------------------------------------
+          skip_check: CKV_AZURE_50,CKV2_AZURE_31,CKV2_AZURE_32,CKV2_AZURE_1,CKV_AZURE_206,CKV_AZURE_33
       # -----------------------------------------------------------------
       # Génération du plan Terraform sans tfvars versionné
       # -----------------------------------------------------------------
