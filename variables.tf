@@ -97,3 +97,15 @@ variable "local_user_object_id" {
   description = "Object ID of the local Azure user allowed to manage Key Vault secrets"
   type        = string
 }
+
+# -------------------------------------------------------------------
+# Secret expiration date
+# -------------------------------------------------------------------
+# Date d'expiration du secret stocké dans Azure Key Vault.
+# Format attendu : RFC3339 / ISO 8601 UTC
+# Exemple : 2027-01-01T00:00:00Z
+# -------------------------------------------------------------------
+variable "secret_expiration_date" {
+  description = "Expiration date for Key Vault secrets (RFC3339 format)"
+  type        = string
+}

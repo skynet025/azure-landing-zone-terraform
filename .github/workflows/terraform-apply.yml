@@ -38,10 +38,14 @@ jobs:
 
     env:
       TF_IN_AUTOMATION: true
-
+      # -----------------------------------------------------------------
+      # Azure context injected from GitHub environment variables
+      # -----------------------------------------------------------------
       TF_VAR_subscription_id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
       TF_VAR_tenant_id: ${{ vars.AZURE_TENANT_ID }}
-
+      # -----------------------------------------------------------------
+      # Core naming and environment variables
+      # -----------------------------------------------------------------
       TF_VAR_org: ${{ vars.ORG }}
       TF_VAR_workload: ${{ vars.WORKLOAD }}
       TF_VAR_scope: ${{ vars.SCOPE }}
@@ -54,9 +58,18 @@ jobs:
       TF_VAR_data_classification: ${{ vars.DATA_CLASSIFICATION }}
       TF_VAR_admin_public_ip: ${{ vars.ADMIN_PUBLIC_IP }}
       TF_VAR_vm_admin_username: ${{ vars.VM_ADMIN_USERNAME }}
-
+      # -----------------------------------------------------------------
+      # RBAC object IDs used by Terraform
+      # -----------------------------------------------------------------
       TF_VAR_github_sp_object_id: ${{ vars.SP_GITHUB_OBJECT_ID }}
       TF_VAR_local_user_object_id: ${{ vars.LOCAL_USER_OBJECT_ID }}
+      # -----------------------------------------------------------------
+      # Secret expiration date injected from GitHub environment
+      # -----------------------------------------------------------------
+      # Cette valeur est transmise à Terraform afin de créer
+      # des secrets Key Vault avec une échéance explicite.
+      # -----------------------------------------------------------------
+      TF_VAR_secret_expiration_date: ${{ vars.SECRET_EXPIRATION_DATE }}
 
     steps:
       # -----------------------------------------------------------------

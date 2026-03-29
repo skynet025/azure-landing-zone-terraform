@@ -169,6 +169,14 @@ module "keyvault" {
   # Secret stocké dans le Key Vault
   secret_name  = "vm-admin-password"
   secret_value = random_password.vm_admin.result
+  # -------------------------------------------------------------------
+  # Secret expiration date passed to Key Vault module
+  # -------------------------------------------------------------------
+  # On transmet explicitement la date d'expiration au module
+  # pour éviter les secrets sans échéance, ce qui est remonté
+  # par Checkov comme un point de faiblesse sécurité.
+  # -------------------------------------------------------------------
+  secret_expiration_date = var.secret_expiration_date
 
   tags = local.common_tags
 }
