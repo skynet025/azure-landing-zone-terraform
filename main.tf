@@ -169,6 +169,14 @@ module "keyvault" {
   # Secret stocké dans le Key Vault
   secret_name  = "vm-admin-password"
   secret_value = random_password.vm_admin.result
+  # -------------------------------------------------------------------
+  # Secret expiration date passed to Key Vault module
+  # -------------------------------------------------------------------
+  # On transmet explicitement la date d'expiration au module
+  # pour éviter les secrets sans échéance, ce qui est remonté
+  # par Checkov comme un point de faiblesse sécurité.
+  # -------------------------------------------------------------------
+  secret_expiration_date = var.secret_expiration_date
 
   tags = local.common_tags
 }
@@ -270,7 +278,11 @@ resource "azurerm_network_interface" "test" {
 }
 
 # -------------------------------------------------------------------
-# VM de test pour validation routing
+# Test VM for routing validation
+# -------------------------------------------------------------------
+# Cette VM sert à valider les routes effectives sur le subnet de test.
+# On active "Encryption at Host" pour répondre au contrôle sécurité
+# Checkov CKV_AZURE_151 sur le chiffrement de la VM.
 # -------------------------------------------------------------------
 resource "azurerm_windows_virtual_machine" "test" {
   name                = "vm-${var.org}-${var.workload}-test-${var.env}-${var.region_code}-${var.instance}"
@@ -278,6 +290,14 @@ resource "azurerm_windows_virtual_machine" "test" {
   resource_group_name = module.resource_group.name
   location            = module.resource_group.location
   size                = "Standard_B2ts_v2"
+
+  # -----------------------------------------------------------------
+  # Chiffrement hôte activé
+  # -----------------------------------------------------------------
+  # Permet de renforcer la protection des disques/IO côté hyperviseur
+  # et de satisfaire le contrôle Checkov sur le chiffrement de la VM.
+  # -----------------------------------------------------------------
+  encryption_at_host_enabled = true
 
   admin_username = "azureuser"
   admin_password = random_password.vm_admin.result

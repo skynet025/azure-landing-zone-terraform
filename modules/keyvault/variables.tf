@@ -45,7 +45,10 @@ variable "secret_value" {
   type        = string
   sensitive   = true
 }
-
+variable "secret_expiration_date" {
+  description = "Expiration date for the Key Vault secret in RFC3339 format"
+  type        = string
+}
 variable "tags" {
   description = "Common tags"
   type        = map(string)

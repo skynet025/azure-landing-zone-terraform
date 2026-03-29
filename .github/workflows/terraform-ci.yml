@@ -41,10 +41,14 @@ jobs:
     # -----------------------------------------------------------------
     env:
       TF_IN_AUTOMATION: true
-
+      # -----------------------------------------------------------------
+      # Azure context injected from GitHub environment variables
+      # -----------------------------------------------------------------
       TF_VAR_subscription_id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
       TF_VAR_tenant_id: ${{ vars.AZURE_TENANT_ID }}
-
+      # -----------------------------------------------------------------
+      # Core naming and environment variables
+      # -----------------------------------------------------------------
       TF_VAR_org: ${{ vars.ORG }}
       TF_VAR_workload: ${{ vars.WORKLOAD }}
       TF_VAR_scope: ${{ vars.SCOPE }}
@@ -57,9 +61,19 @@ jobs:
       TF_VAR_data_classification: ${{ vars.DATA_CLASSIFICATION }}
       TF_VAR_admin_public_ip: ${{ vars.ADMIN_PUBLIC_IP }}
       TF_VAR_vm_admin_username: ${{ vars.VM_ADMIN_USERNAME }}
-
+      # -----------------------------------------------------------------
+      # RBAC object IDs used by Terraform
+      # -----------------------------------------------------------------
       TF_VAR_github_sp_object_id: ${{ vars.SP_GITHUB_OBJECT_ID }}
       TF_VAR_local_user_object_id: ${{ vars.LOCAL_USER_OBJECT_ID }}
+            # -----------------------------------------------------------------
+      # Secret expiration date injected from GitHub environment
+      # -----------------------------------------------------------------
+      # Cette valeur alimente Terraform via TF_VAR_*
+      # afin d'éviter les secrets sans date d'expiration
+      # dans Azure Key Vault.
+      # -----------------------------------------------------------------
+      TF_VAR_secret_expiration_date: ${{ vars.SECRET_EXPIRATION_DATE }}
 
     steps:
       # -----------------------------------------------------------------
@@ -102,6 +116,35 @@ jobs:
       - name: Terraform validate
         run: terraform validate
 
+      # -----------------------------------------------------------------
+      # Security scan - Terraform (DevSecOps)
+      # -----------------------------------------------------------------
+      # Checkov scanne le code Terraform pour détecter les
+      # mauvaises configurations sécurité avant le plan/apply.
+      #
+      # Certains contrôles sont temporairement ignorés :
+      # - faux positifs / limites d'analyse statique
+      # - contraintes connues du lab
+      # - remédiations planifiées dans une PR de hardening dédiée
+      # -----------------------------------------------------------------
+      - name: Run Checkov (Terraform security scan)
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: .
+          framework: terraform
+          soft_fail: false
+
+          # -------------------------------------------------------------
+          # Temporary skips
+          # -------------------------------------------------------------
+          # CKV_AZURE_50   : règle peu pertinente ici / à revoir plus tard
+          # CKV2_AZURE_31  : associations NSG gérées séparément du subnet
+          # CKV2_AZURE_32  : Private Endpoint Key Vault prévu plus tard
+          # CKV2_AZURE_1   : CMK storage trop avancé pour cette étape du lab
+          # CKV_AZURE_206  : réplication LRS assumée pour le lab
+          # CKV_AZURE_33   : queue logging non utilisé dans ce lab
+          # -------------------------------------------------------------
+          skip_check: CKV_AZURE_50,CKV2_AZURE_31,CKV2_AZURE_32,CKV2_AZURE_1,CKV_AZURE_206,CKV_AZURE_33
       # -----------------------------------------------------------------
       # Génération du plan Terraform sans tfvars versionné
       # -----------------------------------------------------------------

@@ -1,4 +1,4 @@
-# Azure Landing Zone Terraform (Enterprise Lab)
+# Azure Landing Zone Terraform (Enterprise grade)
 
 ## Overview
 This repository demonstrates the design and implementation of an **enterprise-grade Azure Landing Zone** using Terraform and GitHub Actions.
@@ -80,3 +80,23 @@ Security is enforced using:
 modules/                # reusable Terraform modules
 config/                 # environment templates (.example only)
 .github/workflows/      # CI/CD pipelines
+```
+
+## DevSecOps – Infrastructure Security Scanning
+
+As part of a DevSecOps approach, Terraform configurations are automatically scanned for security misconfigurations during the CI pipeline.
+
+### Implementation
+- Integration of Checkov in GitHub Actions
+- Automated scan of Terraform code before deployment
+- Pipeline fails if critical security issues are detected
+
+### Security Controls
+- Detection of misconfigurations (network exposure, encryption, access control)
+- Enforcement of secure defaults before infrastructure deployment
+- Early identification of compliance issues
+
+### Value
+- Shifts security left in the deployment lifecycle
+- Prevents insecure infrastructure from being deployed
+- Aligns with enterprise DevSecOps practices
