@@ -42,6 +42,7 @@ resource "azurerm_windows_virtual_machine" "this" {
     caching              = "ReadWrite"
     storage_account_type = "Standard_LRS"
   }
+  encryption_at_host_enabled = true
 
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
