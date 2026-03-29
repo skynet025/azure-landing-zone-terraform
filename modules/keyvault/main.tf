@@ -17,8 +17,8 @@ resource "azurerm_key_vault" "this" {
   rbac_authorization_enabled = true
 
   # Paramètres minimum pour le lab
-  purge_protection_enabled   = true
-  soft_delete_retention_days = 7
+  purge_protection_enabled      = true
+  soft_delete_retention_days    = 7
   public_network_access_enabled = false
 
   network_acls {
@@ -54,9 +54,9 @@ resource "azurerm_role_assignment" "secrets_officer" {
 # -------------------------------------------------------------------
 
 resource "azurerm_key_vault_secret" "this" {
-  name         = var.secret_name
-  value        = var.secret_value
-  key_vault_id = azurerm_key_vault.this.id
+  name            = var.secret_name
+  value           = var.secret_value
+  key_vault_id    = azurerm_key_vault.this.id
   content_type    = "password"
   expiration_date = var.secret_expiration_date
 
