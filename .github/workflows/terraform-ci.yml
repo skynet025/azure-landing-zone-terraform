@@ -103,6 +103,16 @@ jobs:
         run: terraform validate
 
       # -----------------------------------------------------------------
+      # Security scan - Terraform (DevSecOps)
+      # -----------------------------------------------------------------
+      - name: Run Checkov (Terraform security scan)
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: .
+          framework: terraform
+          soft_fail: false
+
+      # -----------------------------------------------------------------
       # Génération du plan Terraform sans tfvars versionné
       # -----------------------------------------------------------------
       - name: Terraform plan (detailed exitcode)
