@@ -1,10 +1,11 @@
 # -------------------------------------------------------------------
 # Azure Key Vault
 # -------------------------------------------------------------------
-# Ce coffre Azure stocke les secrets du lab.
-# Le modèle RBAC moderne est utilisé.
+# Le Key Vault est configuré en RBAC, avec purge protection activée.
+# L'accès réseau public reste temporairement autorisé car le pipeline
+# GitHub Actions utilise des runners hébergés publiquement et doit
+# pouvoir accéder au data plane du Key Vault.
 # -------------------------------------------------------------------
-
 resource "azurerm_key_vault" "this" {
   name                = var.key_vault_name
   location            = var.location
@@ -13,18 +14,28 @@ resource "azurerm_key_vault" "this" {
   tenant_id = var.tenant_id
   sku_name  = "standard"
 
-  # Active le modèle RBAC moderne
+  # -----------------------------------------------------------------
+  # Use RBAC authorization model
+  # -----------------------------------------------------------------
   rbac_authorization_enabled = true
 
-  # Paramètres minimum pour le lab
-  purge_protection_enabled      = true
-  soft_delete_retention_days    = 7
-  public_network_access_enabled = false
+  # -----------------------------------------------------------------
+  # Recovery and protection settings
+  # -----------------------------------------------------------------
+  # Purge protection est activée pour renforcer la résilience du coffre.
+  # -----------------------------------------------------------------
+  purge_protection_enabled   = true
+  soft_delete_retention_days = 7
 
-  network_acls {
-    default_action = "Deny"
-    bypass         = "AzureServices"
-  }
+  # -----------------------------------------------------------------
+  # Network access
+  # -----------------------------------------------------------------
+  # L'accès public reste activé temporairement pour permettre au
+  # pipeline GitHub-hosted d'interagir avec le Key Vault.
+  # Une future évolution consistera à basculer vers Private Endpoint
+  # + connectivité privée pour désactiver l'accès public.
+  # -----------------------------------------------------------------
+  public_network_access_enabled = true
 
   tags = var.tags
 }

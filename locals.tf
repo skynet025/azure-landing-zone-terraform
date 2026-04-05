@@ -50,6 +50,17 @@ locals {
     vm   = "vm-${var.org}-${var.workload}-${var.scope}-${var.env}-${var.region_code}-${var.instance}"
 
     # ---------------------------------------------------------------
+    # Hub / Spoke networking
+    # ---------------------------------------------------------------
+    # Noms réseau centralisés pour éviter les valeurs inline
+    # dans le root module.
+    # ---------------------------------------------------------------
+    vnet_hub    = "vnet-${var.org}-hub-shared-${var.env}-${var.region_code}-${var.instance}"
+    snet_shared = "snet-shared"
+    snet_app    = "snet-app"
+    snet_test   = "snet-test"
+
+    # ---------------------------------------------------------------
     # Azure resources with specific naming constraints
     # ---------------------------------------------------------------
     # Le Key Vault et le Storage Account doivent respecter des
@@ -59,13 +70,18 @@ locals {
     st = "st${var.org}${var.workload}${var.env}${var.region_code}${var.instance}"
 
     # ---------------------------------------------------------------
+    # Key Vault secrets
+    # ---------------------------------------------------------------
+    kv_secret_vm_admin_password = "vm-admin-password"
+
+    # ---------------------------------------------------------------
     # Windows hostnames
     # ---------------------------------------------------------------
     # Les hostnames Windows sont limités à 15 caractères maximum.
     # On applique une convention courte compatible avec l'OS.
     # ---------------------------------------------------------------
-    vm_computer_name      = upper("vm${var.org}${var.env}${var.region_code}${var.instance}")
-    vm_test_computer_name = upper("vm${var.org}tst${var.instance}")
+    vm_computer_name = upper("vm${var.org}${var.env}${var.region_code}${var.instance}")
+
 
     # ---------------------------------------------------------------
     # Peering
@@ -94,9 +110,9 @@ locals {
     # Ressources utilisées pour valider le routage, les routes
     # effectives et le comportement réseau sans impacter le subnet app.
     # ---------------------------------------------------------------
-    snet_test   = "snet-test"
-    nic_test    = "nic-${var.org}-${var.workload}-test-${var.env}-${var.region_code}-${var.instance}"
-    vm_test     = "vm-${var.org}-${var.workload}-test-${var.env}-${var.region_code}-${var.instance}"
-    osdisk_test = "osdisk-test"
+    vm_test_computer_name = upper("vm${var.org}tst${var.instance}")
+    nic_test              = "nic-${var.org}-${var.workload}-test-${var.env}-${var.region_code}-${var.instance}"
+    vm_test               = "vm-${var.org}-${var.workload}-test-${var.env}-${var.region_code}-${var.instance}"
+    osdisk_test           = "osdisk-test"
   }
 }

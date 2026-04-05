@@ -16,30 +16,30 @@ module "resource_group" {
 # -------------------------------------------------------------------
 # Hub network module call
 # -------------------------------------------------------------------
-# Ce module crée un VNet hub simple qui servira de réseau partagé.
+# Ce module crée le VNet hub utilisé pour les services partagés
+# et pour centraliser les flux réseau (ex : Azure Firewall).
+# Tous les noms sont consommés depuis la convention centrale.
 # -------------------------------------------------------------------
-
 module "hub_network" {
   source = "./modules/network"
 
-  vnet_name           = "vnet-${var.org}-hub-shared-${var.env}-${var.region_code}-${var.instance}"
+  vnet_name           = local.naming.vnet_hub
   location            = module.resource_group.location
   resource_group_name = module.resource_group.name
   address_space       = ["10.100.0.0/16"]
 
-  subnet_name     = "snet-shared"
+  subnet_name     = local.naming.snet_shared
   subnet_prefixes = ["10.100.1.0/24"]
 
   tags = local.common_tags
 }
 
 # -------------------------------------------------------------------
-# Spoke Network module call
+# Spoke network module call
 # -------------------------------------------------------------------
-# Le root module délègue la création du VNet et du subnet app
-# à un module réseau réutilisable.
+# Le root module délègue la création du VNet spoke et du subnet
+# applicatif à un module réseau réutilisable.
 # -------------------------------------------------------------------
-
 module "network" {
   source = "./modules/network"
 
@@ -48,7 +48,7 @@ module "network" {
   resource_group_name = module.resource_group.name
   address_space       = ["10.200.0.0/16"]
 
-  subnet_name     = "snet-app"
+  subnet_name     = local.naming.snet_app
   subnet_prefixes = ["10.200.1.0/24"]
 
   tags = local.common_tags
@@ -166,9 +166,15 @@ module "keyvault" {
     var.local_user_object_id
   ]
 
-  # Secret stocké dans le Key Vault
-  secret_name  = "vm-admin-password"
+  # -----------------------------------------------------------------
+  # Secret stored in Key Vault
+  # -----------------------------------------------------------------
+  # Le nom du secret est centralisé dans locals pour éviter
+  # les valeurs inline dans le root module.
+  # -----------------------------------------------------------------
+  secret_name  = local.naming.kv_secret_vm_admin_password
   secret_value = random_password.vm_admin.result
+
   # -------------------------------------------------------------------
   # Secret expiration date passed to Key Vault module
   # -------------------------------------------------------------------
@@ -281,21 +287,21 @@ resource "azurerm_network_interface" "test" {
 # Test VM for routing validation
 # -------------------------------------------------------------------
 # Cette VM sert à valider les routes effectives sur le subnet de test.
-# On active "Encryption at Host" pour répondre au contrôle sécurité
-# Checkov CKV_AZURE_151 sur le chiffrement de la VM.
+# Elle n'utilise pas le module compute afin de garder un cas
+# de validation simple et isolé au niveau du root module.
 # -------------------------------------------------------------------
 resource "azurerm_windows_virtual_machine" "test" {
-  name                = "vm-${var.org}-${var.workload}-test-${var.env}-${var.region_code}-${var.instance}"
+  name                = local.naming.vm_test
   computer_name       = local.naming.vm_test_computer_name
   resource_group_name = module.resource_group.name
   location            = module.resource_group.location
   size                = "Standard_B2ts_v2"
 
   # -----------------------------------------------------------------
-  # Chiffrement hôte activé
+  # Encryption at host
   # -----------------------------------------------------------------
-  # Permet de renforcer la protection des disques/IO côté hyperviseur
-  # et de satisfaire le contrôle Checkov sur le chiffrement de la VM.
+  # Active le chiffrement côté hôte afin de satisfaire
+  # la baseline sécurité définie pour les VMs.
   # -----------------------------------------------------------------
   encryption_at_host_enabled = true
 
@@ -309,7 +315,7 @@ resource "azurerm_windows_virtual_machine" "test" {
   os_disk {
     caching              = "ReadWrite"
     storage_account_type = "Standard_LRS"
-    name                 = "osdisk-test"
+    name                 = local.naming.osdisk_test
   }
 
   source_image_reference {
