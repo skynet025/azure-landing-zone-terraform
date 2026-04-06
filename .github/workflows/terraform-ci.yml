@@ -143,8 +143,13 @@ jobs:
           # CKV2_AZURE_1   : CMK storage trop avancé pour cette étape du lab
           # CKV_AZURE_206  : réplication LRS assumée pour le lab
           # CKV_AZURE_33   : queue logging non utilisé dans ce lab
+          # CKV_AZURE_109  : firewall Key Vault reporté tant que le pipeline
+          #                  utilise des runners GitHub-hosted publics
+          # CKV_AZURE_189  : désactivation de l'accès public Key Vault
+          #                  reportée à une future implémentation
+          #                  Private Endpoint + connectivité privée
           # -------------------------------------------------------------
-          skip_check: CKV_AZURE_50,CKV2_AZURE_31,CKV2_AZURE_32,CKV2_AZURE_1,CKV_AZURE_206,CKV_AZURE_33
+          skip_check: CKV_AZURE_50,CKV2_AZURE_31,CKV2_AZURE_32,CKV2_AZURE_1,CKV_AZURE_206,CKV_AZURE_33,CKV_AZURE_109,CKV_AZURE_189
       # -----------------------------------------------------------------
       # Génération du plan Terraform sans tfvars versionné
       # -----------------------------------------------------------------
